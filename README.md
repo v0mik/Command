@@ -380,4 +380,47 @@ Next
 
 Next
 
-Configure
+# WEB-L Doc
+
+apt-cdrom add – добавление диска в дисковод
+
+apt install -y docker – установка приложения docker
+
+systemctl start docker – запуск сервиса docker
+
+systemctl enable docker – активация сервиса docker
+
+mkdir /mnt/app – создание новой директории
+
+mount /dev/sr1 /mnt/app – монтирование папки в новую созданную
+
+docker load < /mnt/app/app.tar – загрузка файла приложением docker
+
+docker images – отображение образов docker
+
+docker run --name app  -p 8080:80 -d app – запуск нашего приложения на порту 8080 и 80
+
+docker ps – проверка запуска
+
+# WEB-L 
+
+apt-cdrom add
+
+apt install -y docker-ce
+
+systemctl start docker
+
+systemctl enable docker
+
+mkdir /mnt/app
+
+mount /dev/sr1 /mnt/app
+
+docker load < /mnt/app/app.tar
+
+docker images
+
+docker run --name app  -p 8080:80 -d app
+
+docker ps
+
