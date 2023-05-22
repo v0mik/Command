@@ -140,3 +140,16 @@ rtr-l IN  A 4.4.4.100 (менять исходя из задания)
 
 systemctl restart bind9 – перезапуск компонента bind9
 
+# SRV
+
+Server Manager - Add roles and features - Next до окна Server Roles - Выбираем DNS-Server - Add Features - Next до конца - Install - Перезагрузка 
+
+Server Manager - слева выбираем DNS - в разделе Servers на имени сервера правой кнопкой -  DNS Manager - Action - New Zone - Primary Zone - Next - вводим int.demo.wsr - Next - вводим int.demo.wsr.dns - Next - Finish 
+
+Заходим в int.demo.wsr - в левой части по нему нажимаем правой кнопкой
+
+Выбираем New Host, вносим имя и ip (которые давали в таблице). Пример NAME=>
+
+
+
+
