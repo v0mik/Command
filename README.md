@@ -64,4 +64,79 @@ net.ipv4.ip_forward=1 - НУЖНО РАСКОММЕНТИРОВАТЬ строч
 
 sysctl -p
 
+# SSH WEB-L, SSH WEB-R
+
+apt-cdrom add – подключение дисковода
+
+apt install -y openssh-server ssh – установка компонента openssh-server
+
+systemctl start sshd – включение данного компонента
+
+systemctl enable ssh – включение протокола ssh
+
+# ISP
+
+Подключить диск
+
+apt-cdrom add – подключаем cdrom
+
+apt install -y bind9 – установка компонента bind9
+
+mkdir /opt/dns – создание новой директории
+
+cp /etc/bind/db.local /opt/dns/demo.db – копирование файла в указанную директорию (dns)
+
+chown -R bind:bind /opt/dns – перенастраивает права расположения и доступа на указанную директорию
+
+nano /etc/apparmor.d/usr.sbin.named – открываем файл в текст.редакторе
+
+затем после строчки /var/cache/bind/ rw надо добавить строчку
+
+/opt/dns/** rw, - для того, чтобы система имела доступ к записи в данной директории 
+
+Ctrl+o Enter сохранить ctrl+x выйти их текст.файла
+
+systemctl restart apparmor.service
+
+nano /etc/bind/named.conf.options – открываем в текст.редакторе файл, который отвечает за настройку dns-зон
+
+меняем строчку forwarders 0.0.0.0 на 4.4.4.100 (адрес берем из таблицы – ip-адрес из сети ISP) затем в строке dnssec-validation меняем auto на no – проверка при подключении к dns отключается и добавляем строку allow-query {any;}; - все подключения в очереди разрешены
+
+Ctrl+o Enter сохранить ctrl+x выйти их текст.файла
+
+nano /etc/bind/named.conf.default-zones – открываем файл, который отвечает за нахождение базы данных dns-зон
+
+в нем изменяем zone “localhost” на zone "demo.wsr", добавляем строчку allow-transfer { any; }  и меняем расположение и название файла (см.ниже):
+
+zone "demo.wsr" {
+
+type master;
+   
+allow-transfer { any; };
+   
+file "/opt/dns/demo.db";
+   
+};
+
+Ctrl+o Enter сохранить ctrl+x выйти их текст.файла
+
+nano /opt/dns/demo.db – открываем сам файл с БД, меняем localhost на данные из таблицы (название dns-зоны, где она расположена, новые ip-адреса из таблицы, а также прописыаем настройки интерфейсов):
+
+@ IN SOA demo.wsr. root.demo.wsr.(
+
+@ IN NS isp.demo.wsr.
+
+isp IN A 3.3.3.1 (менять исходя по данным из таблицы)
+
+www IN A 4.4.4.100 (аналогично)
+
+www IN A 5.5.5.100 (аналогично)
+
+internet CNAME isp.demo.wsr.
+
+int IN NS rtr-l.demo.wsr.
+
+rtr-l IN  A 4.4.4.100 (менять исходя из задания)
+
+systemctl restart bind9 – перезапуск компонента bind9
 
