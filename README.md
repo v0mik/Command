@@ -172,5 +172,212 @@ systemctl restart chronyd
 
 # SRV NTP 
 
+Заходим на SRV-Win – Control Panel – Windows Defender Firewall – Advanced Settings – Inbound Rules – New Rule (справа) – Port – UDP – Specific 123 - Next - Next - ВСЕ ГАЛЛОЧКИ - Next - Name: NTP
 
+PowerShell
 
+w32tm /query /status – проверка очереди и статуса сервиса W32Time(сервис синхронизации)
+
+Start-Service W32Time – запуск сервиса W32Time
+
+w32tm /config /manualpeerlist:4.4.4.1 /syncfromflags:manual /reliable:yes /update – настройка сервиса W32Time
+
+Restart-Service W32Time – перезапуск сервиса W32Time
+
+# CLI 
+
+New-NetFirewallRule -DisplayName "NTP" -Direction Inbound -LocalPort 123 -Protocol UDP -Action Allow
+
+Start-Service W32Time
+
+w32tm /config /manualpeerlist:4.4.4.1 /syncfromflags:manual /reliable:yes /update
+
+Restart-Service W32Time
+
+Set-Service -Name W32Time -StartupType Automatic
+
+# WEB-L
+
+apt-cdrom add – прикрепление CD-ROM
+
+apt install -y chrony – установка компонента chrony(компонент для настройки синхронизации)
+
+nano /etc/chrony/chrony.conf – открытие в текст.редакторе файла с настройками chrony
+
+закомментировать строчку pool 2.debian…………….. iburst
+
+далее прописываем после строчки #pool 2.debian…………….. iburst:
+
+pool ntp.int.demo.wsr iburst
+
+allow 192.168.100.0/24
+
+Ctrl+o Enter, Ctrl+x
+
+systemctl restart chrony – перезапуск компонента chrony
+
+# WEB-R
+
+apt-cdrom add
+
+apt install -y chrony 
+
+nano /etc/chrony/chrony.conf
+
+pool ntp.int.demo.wsr iburst
+
+allow 192.168.100.0/24
+
+systemctl restart chrony
+
+# SRV RAID1
+
+В поиске найти Computer Management – Disk Management -правой кнопкой по Disk 1/2 – выбрать пункт Online
+
+Далее закрыть данное окно и заново открыть. Выбираем наши диски и разметку GPT и нажимаем ОК.
+
+Далее нажимаем на Disk 1 и выбираем пункт New Mirrored Volume.
+
+Далее в диалоговом окне нажимаем на Disk 2 и Add>, далее Next.
+
+Выбираем букву для нашего раздела. Next.
+
+Назначаем имя и next. Далее проверяем наши настройки и next.
+
+На предупреждение конвертации диска нажимаем Yes.
+
+Server Manager -> File and Storage Services -> Shares -> Start the Add Roles and Features Wizard
+
+Next
+
+Next
+
+File and Storage Service
+
+Next
+
+Ставим галочку Restart the destination server automatically if required. Соглашаемся с предупреждением. Нажимаем Install.
+
+Install
+
+Ждём Feature installation. Close. Перезапускаем сервер.
+
+Server Manager -> File and Storage Services -> Shares -> TASKS ->NewShare или клик правой кнопкой-> New Share
+
+Выбираем SMB Share – Quick и нажимаем Next.
+
+Выбираем путь до нашей папки на новом разделе Type a custom path -> Browse…
+
+Select Folder и нажимаем Next.
+
+Далее задаем имя, лучше оставить такое же как и папка, и нажимаем Next.
+
+Оставляем галочки на своих местах и нажимаем Next.
+
+Нажимаем Next.
+
+Проверяем настройки и нажимаем Create.
+
+После завершения создания нажимаем Close.
+
+Далее открываем проводник и заходим на новый раздел. Кликаем по нашей папке правой кнопкой и выбираем Properties, далее заходим во вкладку Sharing. Нажимаем на кнопку Share.
+
+Выбираем из выпадающего списка Everyone и нажать Add.
+
+Присваиваем Everyone права Read/Write и нажимаем Share.
+
+Нажимаем Yes, turn on network discovery and file sharing for all public networks.
+
+Нажимаем Done.
+
+powerShell тоже самое что и выше 
+
+get-disk
+
+set-disk -Number 1 -IsOffline $false
+
+set-disk -Number 2 -IsOffline $false
+
+New-StoragePool -FriendlyName "POOLRAID1" -StorageSubsystemFriendlyName "Windows Storage*" -PhysicalDisks (Get-PhysicalDisk -CanPool $true)
+
+New-VirtualDisk -StoragePoolFriendlyName "POOLRAID1" -FriendlyName "RAID1" -ResiliencySettingName Mirror -UseMaximumSize
+
+Initialize-Disk -FriendlyName "RAID1"
+
+New-Partition -DiskNumber 3 -UseMaximumSize -DriveLetter R
+
+Format-Volume -DriveLetter R
+
+Install-WindowsFeature -Name FS-FileServer -IncludeManagementTools
+
+New-Item -Path R:\storage -ItemType Directory
+
+New-SmbShare -Name "SMB" -Path "R:\storage" -FullAccess "Everyone"
+
+# WEB-L 
+
+apt-cdrom add – добавление диска
+
+apt install -y cifs-utils – установка компонента cifs-utils
+
+nano /root/.smbclient – файл с настройками smb
+
+username=Administrator
+
+password=Pa$$w0rd
+
+nano /etc/fstab – файл с настройками местоположения папки
+
+//srv.int.demo.wsr/share_folder /opt/share cifs user,rw,_netdev,credentials=/root/.smbclient 0 0
+
+mkdir /opt/share – создание раздела с сетевыми папками
+
+mount -a – присоединение
+
+# WEB-R 
+
+apt-cdrom add
+
+apt install -y cifs-utils
+
+nano /root/.smbclient
+
+username=Administrator
+
+password=Pa$$w0rd
+
+nano /etc/fstab
+
+//srv.int.demo.wsr/share_folder /opt/share cifs user,rw,_netdev,credentials=/root/.smbclient 0 0
+
+mkdir /opt/share
+
+mount -a
+
+В Server Manager – справа вверху Manage – Add roles and Features – Next – Next – Next – в списках ролей выбираем Active Directory Certification Services – Add features – Next – Next – Next –Install
+
+Если все ОК, слева в Server Manager должна появиться вкладка AD CS. Зайти туда.
+
+Выбираем справа вверху Tasks – Add Roles and Features - Next – Next – Next – раскрыть первую роль – выбрать Certification Authority Web Enpollment – кнопка Add Features - Next – Next – Next – Next – Install – Close
+
+В Server Manage нажимаем на флажок справа сверху и выбираем Configure Active Directory Certification Services
+
+Next
+
+Выбираем две роли Certification Authority и Certification Authority Web Enrollment
+
+Выбираем Standalone CA - Next
+
+Выбираем Root CA - Next
+
+Create a new private key - next
+
+Next
+
+Называем в поле Common name for this CA: Demo.wsr и в Preview of distinguished name: CN=Demo.wsr
+
+Next
+
+Next
+
+Configure
