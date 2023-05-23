@@ -424,3 +424,33 @@ docker run --name app  -p 8080:80 -d app
 
 docker ps
 
+# Минимум 
+
+Nmtui – если забыл команды для ip Debian.
+
+Apt-cdrom add -> apt install net-tools nano network-manager ssh (TAB)
+
+Hostnamectl set-hostname (ИМЯ)
+
+Nmcli connection modify Wired\ connection\ 1 ipv4.addresses x.x.x.x/x (ipv4.gateway x.x.x.x) 
+ipv4.method manual autoconnect yes con-name X (Настройка ip Debian)(шлюз только в ртр-р 1, ртр-л 
+
+1, веб-л 1, веб-р 1, срв 1, цлай)
+
+Echo net.ipv4.ip_forward=1 >> /etc/sysctl.conf -> sysctl -p (на ртр-л, ртр-р, исп)
+
+Nmcli(Определяем интерфейсы которые смотрят во внешнюю сеть)
+
+Firewall-cmd --permanent --zone=external --add-interface=ens18 -> firewall-cmd –reload(для ртр-л и 
+
+ртр-р) проверка-   firewall-cmd --zone=external --list-all
+
+App install libreswan -y -> nmcli connection add type ip-tunnel ifname grel mode gre remote x.x.x.x 
+
+(противоположный) local x.x.x.x (этот) – ip-tunnel.mtu 1500 ip-tunnel.ttl 255 ipv4.addresses 
+
+10.5.5.x/30 ipv4.method manual autoconnect yes (для ртр-л и ртр-р)
+
+Firewall-cmd –permanet--zone=external --add-interface=gre1 (для ртр-л и ртр-р)
+
+Firewall-cmd  --permanent  --zone=public --add-forward ->apt install tcpdump (исп)
